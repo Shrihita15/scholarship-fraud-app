@@ -1,0 +1,6 @@
+streamlit
+pandas
+joblib
+scikit-learn
+easyocr
+opencv-python-headless
