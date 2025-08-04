@@ -21,6 +21,40 @@ if uploaded_file:
         if "Name" in df.columns:
             df.drop(columns=["Name"], inplace=True)
 
+
+
+import easyocr
+import re
+from PIL import Image
+import tempfile
+import os
+
+st.markdown("---")
+st.header("📸 Upload Document for OCR")
+
+ocr_file = st.file_uploader("Upload Income Certificate (Image or PDF)", type=["png", "jpg", "jpeg", "pdf"], key="ocr")
+
+if ocr_file is not None:
+    with tempfile.NamedTemporaryFile(delete=False) as tmp_file:
+        tmp_file.write(ocr_file.read())
+        temp_path = tmp_file.name
+
+    # Read with EasyOCR
+    reader = easyocr.Reader(['en', 'mr'])  # English + Marathi
+    text = reader.readtext(temp_path, detail=0, paragraph=True)
+
+    extracted_text = "\n".join(text)
+    st.text_area("📄 Extracted Text from Document:", extracted_text, height=300)
+
+    # Try to extract income from the text using regex
+    income_match = re.search(r"[\₹Rs\.]?\s?([0-9,]{2,15})", extracted_text.replace(",", ""))
+    if income_match:
+        income_value = int(income_match.group(1))
+        st.success(f"💰 Extracted Income: ₹{income_value}")
+    else:
+        st.warning("⚠️ Could not detect income amount. Please check document clarity.")
+        
+
         # Step 2: Label Encode
         label_cols = ["Spent_On", "Documents_Verified", "Enrollment_Status", "Application_State"]
         for col in label_cols:
